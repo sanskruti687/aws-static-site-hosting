@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blue Sky Daily Planner</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to top, #a0d8ef, #e0f7fa);
+      color: #333;
+    }
+
+    .book {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 40px;
+    }
+
+    .page {
+      width: 45%;
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .page::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -10px;
+      width: 20px;
+      background: #d0d0d0;
+      border-radius: 10px 0 0 10px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0277bd;
+    }
+
+    #quote {
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+
+    .task-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-form input,
+    .task-form select,
+    .task-form button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .task-form button {
+      background-color: #4fc3f7;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .task-form button:hover {
+      background-color: #0288d1;
+    }
+
+    .category-label {
+      font-weight: bold;
+    }
+
+    #task-list {
+      margin-top: 20px;
+    }
+
+    .task-item {
+      background: #ffffff;
+      border-left: 5px solid #4fc3f7;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .task-item.high { border-left-color: #d32f2f; }
+    .task-item.medium { border-left-color: #f9a825; }
+    .task-item.low { border-left-color: #388e3c; }
+
+    .task-buttons button {
+      margin-left: 5px;
+      background: #0288d1;
+      color: white;
+      border: none;
+      padding: 5px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌤️ Daily Planner</h1>
+  <div id="quote">"Stay focused and never give up!"</div>
+  <div class="book">
+    <!-- Page 1: Task Input -->
+    <div class="page">
+      <h2>Add New Task</h2>
+      <div class="task-form">
+        <input type="text" id="task-title" placeholder="Task Title" />
+        <input type="datetime-local" id="task-date" />
+
+        <label class="category-label" for="task-category">Category:</label>
+        <select id="task-category">
+          <option value="School">School</option>
+          <option value="College">College</option>
+          <option value="Home">Home</option>
+          <option value="Office">Office</option>
+          <option value="Others">Others</option>
+        </select>
+
+        <label class="category-label" for="task-priority">Priority:</label>
+        <select id="task-priority">
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+
+        <button onclick="addTask()">Add Task</button>
+      </div>
+    </div>
+
+    <!-- Page 2: Task List -->
+    <div class="page">
+      <h2>Today's Tasks</h2>
+      <div id="task-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const taskList = document.getElementById('task-list');
+
+    function loadTasks() {
+      taskList.innerHTML = '';
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      tasks.forEach((task, index) => {
+        const div = document.createElement('div');
+        div.className = `task-item ${task.priority.toLowerCase()}`;
+        div.innerHTML = `
+          <div>
+            <strong>${task.title}</strong><br/>
+            <small>${new Date(task.date).toLocaleString()}</small><br/>
+            <em>Category: ${task.category}</em>
+          </div>
+          <div class="task-buttons">
+            <button onclick="editTask(${index})">Edit</button>
+            <button onclick="deleteTask(${index})">Delete</button>
+          </div>
+        `;
+        taskList.appendChild(div);
+      });
+    }
+
+    function addTask() {
+      const title = document.getElementById('task-title').value;
+      const date = document.getElementById('task-date').value;
+      const priority = document.getElementById('task-priority').value;
+      const category = document.getElementById('task-category').value;
+
+      if (!title || !date) {
+        alert('Please enter title and date');
+        return;
+      }
+
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      tasks.push({ title, date, priority, category });
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      loadTasks();
+
+      document.getElementById('task-title').value = '';
+      document.getElementById('task-date').value = '';
+      document.getElementById('task-priority').value = 'Low';
+      document.getElementById('task-category').value = 'School';
+    }
+
+    function deleteTask(index) {
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      tasks.splice(index, 1);
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      loadTasks();
+    }
+
+    function editTask(index) {
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      const task = tasks[index];
+      document.getElementById('task-title').value = task.title;
+      document.getElementById('task-date').value = task.date;
+      document.getElementById('task-priority').value = task.priority;
+      document.getElementById('task-category').value = task.category;
+      deleteTask(index);
+    }
+
+    function checkReminders() {
+      const now = new Date();
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      tasks.forEach(task => {
+        const time = new Date(task.date);
+        const diff = (time - now) / 60000;
+        if (diff > 0 && diff < 1) {
+          alert(`⏰ Reminder: ${task.title}`);
+        }
+      });
+    }
+
+    setInterval(checkReminders, 60000); // Check every minute
+    loadTasks();
+  </script>
+</body>
+</html>
